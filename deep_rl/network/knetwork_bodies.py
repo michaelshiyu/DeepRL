@@ -37,7 +37,7 @@ class kFCBody(nn.Module):
 
 class kNatureConvBody(nn.Module):
     def __init__(self, in_channels=4, sigma=1.):
-        super(NatureConvBody, self).__init__()
+        super(kNatureConvBody, self).__init__()
         self.feature_dim = 512
         self.conv1 = layer_init(nn.Conv2d(in_channels, 32, kernel_size=8, stride=4))
         self.conv2 = layer_init(nn.Conv2d(32, 64, kernel_size=4, stride=2))
