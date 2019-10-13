@@ -43,14 +43,15 @@ class kNatureConvBody(nn.Module):
         self.conv2 = layer_init(nn.Conv2d(32, 64, kernel_size=4, stride=2))
         self.conv3 = layer_init(nn.Conv2d(64, 64, kernel_size=3, stride=1))
         # self.fc4 = layer_init(nn.Linear(7 * 7 * 64, self.feature_dim))
-        self.fc4 = kFullyConnected(X=torch.rand(5, 7 * 7 * 64), n_out=self.feature_dim, sigma=sigma, trainable_X=True)
+        self.fc4 = kFullyConnected(X=torch.rand(50, 7 * 7 * 64), n_out=self.feature_dim, sigma=sigma, trainable_X=True)
 
     def forward(self, x):
         y = F.relu(self.conv1(x))
         y = F.relu(self.conv2(y))
         y = F.relu(self.conv3(y))
         y = y.view(y.size(0), -1)
-        y = F.relu(self.fc4(y))
+        # y = F.relu(self.fc4(y))
+        y = self.fc4(y)
         return y
 
 
