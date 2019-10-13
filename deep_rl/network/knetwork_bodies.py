@@ -23,10 +23,10 @@ class kFCBody(nn.Module):
 '''
 
 class kFCBody(nn.Module):
-    def __init__(self, state_dim, hidden_units=(64, 64), sigma=1., gate=F.relu):
+    def __init__(self, state_dim, hidden_units=(64, 64), sigma=1., gate=F.relu, n_centers=100):
         super(kFCBody, self).__init__()
         self.layer0 = nn.Linear(state_dim, hidden_units[0])
-        self.layer1 = kFullyConnected(X=torch.rand(5, hidden_units[0]), n_out=hidden_units[1], sigma=sigma, trainable_X=True)
+        self.layer1 = kFullyConnected(X=torch.rand(n_centers, hidden_units[0]), n_out=hidden_units[1], sigma=sigma, trainable_X=True)
         self.feature_dim = hidden_units[1]
 
     def forward(self, x):
@@ -36,14 +36,14 @@ class kFCBody(nn.Module):
 
 
 class kNatureConvBody(nn.Module):
-    def __init__(self, in_channels=4, sigma=1.):
+    def __init__(self, in_channels=4, sigma=1., n_centers=100):
         super(kNatureConvBody, self).__init__()
         self.feature_dim = 512
         self.conv1 = layer_init(nn.Conv2d(in_channels, 32, kernel_size=8, stride=4))
         self.conv2 = layer_init(nn.Conv2d(32, 64, kernel_size=4, stride=2))
         self.conv3 = layer_init(nn.Conv2d(64, 64, kernel_size=3, stride=1))
         # self.fc4 = layer_init(nn.Linear(7 * 7 * 64, self.feature_dim))
-        self.fc4 = kFullyConnected(X=torch.rand(50, 7 * 7 * 64), n_out=self.feature_dim, sigma=sigma, trainable_X=True)
+        self.fc4 = kFullyConnected(X=torch.rand(n_centers, 7 * 7 * 64), n_out=self.feature_dim, sigma=sigma, trainable_X=True)
 
     def forward(self, x):
         y = F.relu(self.conv1(x))
