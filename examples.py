@@ -18,7 +18,9 @@ def dqn_feature(**kwargs):
     config.eval_env = config.task_fn()
 
     config.optimizer_fn = lambda params: torch.optim.RMSprop(params, 0.001)
-    config.network_fn = lambda: VanillaNet(config.action_dim, FCBody(config.state_dim))
+    # (shiyu) config.network_fn = lambda: VanillaNet(config.action_dim, FCBody(config.state_dim))
+    # (shiyu)
+    config.network_fn = lambda: VanillaNet(config.action_dim, kFCBody(config.state_dim))
     # config.network_fn = lambda: DuelingNet(config.action_dim, FCBody(config.state_dim))
     # config.replay_fn = lambda: Replay(memory_size=int(1e4), batch_size=10)
     config.replay_fn = lambda: AsyncReplay(memory_size=int(1e4), batch_size=10)
@@ -80,7 +82,10 @@ def quantile_regression_dqn_feature(**kwargs):
     config.task_fn = lambda: Task(config.game)
     config.eval_env = config.task_fn()
     config.optimizer_fn = lambda params: torch.optim.RMSprop(params, 0.001)
+    # (shiyu) 
     config.network_fn = lambda: QuantileNet(config.action_dim, config.num_quantiles, FCBody(config.state_dim))
+    # (shiyu) 
+    # config.network_fn = lambda: QuantileNet(config.action_dim, config.num_quantiles, kFCBody(config.state_dim))
 
     # config.replay_fn = lambda: Replay(memory_size=int(1e4), batch_size=10)
     config.replay_fn = lambda: AsyncReplay(memory_size=int(1e4), batch_size=10)
@@ -135,7 +140,9 @@ def categorical_dqn_feature(**kwargs):
     config.task_fn = lambda: Task(config.game)
     config.eval_env = config.task_fn()
     config.optimizer_fn = lambda params: torch.optim.RMSprop(params, 0.001)
+    # (shiyu)
     config.network_fn = lambda: CategoricalNet(config.action_dim, config.categorical_n_atoms, FCBody(config.state_dim))
+    # config.network_fn = lambda: CategoricalNet(config.action_dim, config.categorical_n_atoms, kFCBody(config.state_dim))
     config.random_action_prob = LinearSchedule(1.0, 0.1, 1e4)
 
     # config.replay_fn = lambda: Replay(memory_size=10000, batch_size=10)
@@ -195,14 +202,18 @@ def a2c_feature(**kwargs):
     config.task_fn = lambda: Task(config.game, num_envs=config.num_workers)
     config.eval_env = Task(config.game)
     config.optimizer_fn = lambda params: torch.optim.RMSprop(params, 0.001)
+    # (shiyu)
     config.network_fn = lambda: CategoricalActorCriticNet(
         config.state_dim, config.action_dim, FCBody(config.state_dim, gate=F.tanh))
+    # config.network_fn = lambda: CategoricalActorCriticNet(
+    #     config.state_dim, config.action_dim, kFCBody(config.state_dim, gate=F.tanh))
     config.discount = 0.99
     config.use_gae = True
     config.gae_tau = 0.95
     config.entropy_weight = 0.01
     config.rollout_length = 5
     config.gradient_clip = 0.5
+    config.max_steps = 5e5
     run_steps(A2CAgent(config))
 
 
@@ -263,12 +274,15 @@ def n_step_dqn_feature(**kwargs):
     config.eval_env = Task(config.game)
     config.num_workers = 5
     config.optimizer_fn = lambda params: torch.optim.RMSprop(params, 0.001)
+    # (shiyu)
     config.network_fn = lambda: VanillaNet(config.action_dim, FCBody(config.state_dim))
+    # config.network_fn = lambda: VanillaNet(config.action_dim, kFCBody(config.state_dim))
     config.random_action_prob = LinearSchedule(1.0, 0.1, 1e4)
     config.discount = 0.99
     config.target_network_update_freq = 200
     config.rollout_length = 5
     config.gradient_clip = 5
+    config.max_steps = int(5e5)
     run_steps(NStepDQNAgent(config))
 
 
@@ -305,7 +319,9 @@ def option_critic_feature(**kwargs):
     config.task_fn = lambda: Task(config.game, num_envs=config.num_workers)
     config.eval_env = Task(config.game)
     config.optimizer_fn = lambda params: torch.optim.RMSprop(params, 0.001)
+    # (shiyu)
     config.network_fn = lambda: OptionCriticNet(FCBody(config.state_dim), config.action_dim, num_options=2)
+    # config.network_fn = lambda: OptionCriticNet(kFCBody(config.state_dim), config.action_dim, num_options=2)
     config.random_option_prob = LinearSchedule(1.0, 0.1, 1e4)
     config.discount = 0.99
     config.target_network_update_freq = 200
@@ -313,6 +329,7 @@ def option_critic_feature(**kwargs):
     config.termination_regularizer = 0.01
     config.entropy_weight = 0.01
     config.gradient_clip = 5
+    config.max_steps = int(5e5)
     run_steps(OptionCriticAgent(config))
 
 
@@ -351,7 +368,9 @@ def ppo_feature(**kwargs):
     config.task_fn = lambda: Task(config.game, num_envs=config.num_workers)
     config.eval_env = Task(config.game)
     config.optimizer_fn = lambda params: torch.optim.RMSprop(params, 0.001)
+    # (shiyu)
     config.network_fn = lambda: CategoricalActorCriticNet(config.state_dim, config.action_dim, FCBody(config.state_dim))
+    # config.network_fn = lambda: CategoricalActorCriticNet(config.state_dim, config.action_dim, kFCBody(config.state_dim))
     config.discount = 0.99
     config.use_gae = True
     config.gae_tau = 0.95
@@ -362,6 +381,7 @@ def ppo_feature(**kwargs):
     config.mini_batch_size = 32 * 5
     config.ppo_ratio_clip = 0.2
     config.log_interval = 128 * 5 * 10
+    config.max_steps = int(5e5)
     run_steps(PPOAgent(config))
 
 
@@ -486,7 +506,7 @@ if __name__ == '__main__':
     mkdir('log')
     mkdir('tf_log')
     set_one_thread()
-    random_seed()
+    random_seed(1234)
     select_device(-1)
     # select_device(0)
 
@@ -497,7 +517,7 @@ if __name__ == '__main__':
     # a2c_feature(game=game)
     # n_step_dqn_feature(game=game)
     # option_critic_feature(game=game)
-    # ppo_feature(game=game)
+    ppo_feature(game=game)
 
     # game = 'HalfCheetah-v2'
     game = 'Hopper-v2'
